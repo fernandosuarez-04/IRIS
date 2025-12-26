@@ -1,0 +1,19 @@
+{
+  "agent_profile": "Antigravity-IDE",
+  "connection": {
+    "name": "IRIS Core Link",
+    "description": "Bridge directo a la base de datos de IRIS para contexto en tiempo real",
+    "endpoint": "http://localhost:3000/api/ai/bridge",
+    "auth": {
+      "type": "Bearer",
+      "token_env_var": "IRIS_AGENT_KEY",
+      "fallback_token": "iris-default-secret-key"
+    }
+  },
+  "capabilities": [
+    "read_system_status",
+    "list_active_projects",
+    "analyze_pending_tasks",
+    "introspect_schema"
+  ]
+}

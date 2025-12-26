@@ -1,0 +1,37 @@
+# Netlify Configuration for IRIS Platform
+# Next.js Monorepo Deployment
+
+[build]
+  # Base directory (where package.json and node_modules live for the web app)
+  base = "apps/web"
+  
+  # Build command
+  command = "npm run build"
+  
+  # Publish directory (Next.js output)
+  publish = ".next"
+
+# Use the official Next.js plugin for SSR/ISR support
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Environment variables for build
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# Redirect rules (optional, for SPA fallback)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
