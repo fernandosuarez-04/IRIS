@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import LIAFloatingButton from '@/features/lia/components/LIAFloatingButton';
 import FocusEnforcer from '@/features/tools/FocusEnforcer';
@@ -15,6 +15,7 @@ export default function ClientLayout({
 }) {
   const { user, initialize, isInitialized } = useAuthStore();
   const params = useParams();
+  const pathname = usePathname();
   const teamId = params?.teamId as string | undefined;
 
   // Inicializar autenticación al cargar
@@ -24,14 +25,17 @@ export default function ClientLayout({
     }
   }, [isInitialized, initialize]);
 
+  // Solo mostrar ARIA en rutas de admin (no en home, auth, etc.)
+  const showARIA = isInitialized && pathname?.startsWith('/admin');
+
   return (
     <ThemeProvider>
       <FocusEnforcer />
       <ARIAProvider>
         {children}
         
-        {/* ARIA Floating Button - Solo visible si la app está inicializada */}
-        {isInitialized && (
+        {/* ARIA Floating Button - Solo visible en rutas de admin */}
+        {showARIA && (
           <LIAFloatingButton 
             userName={user?.name}
             userRole={user?.role}
