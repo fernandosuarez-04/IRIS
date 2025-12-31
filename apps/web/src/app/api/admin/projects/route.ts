@@ -336,6 +336,28 @@ export async function POST(request: NextRequest) {
     }
     // --------------------
 
+    // --- MILESTONES ---
+    if (body.milestones && Array.isArray(body.milestones) && body.milestones.length > 0) {
+      const milestonesData = body.milestones.map((m: any, index: number) => ({
+        project_id: newProject.project_id,
+        milestone_name: m.name,
+        milestone_description: m.description || null,
+        milestone_status: 'pending',
+        target_date: m.targetDate || newProject.target_date || new Date().toISOString(), // Fallback to project target or now
+        sort_order: index
+      }));
+
+      const { error: errorMilestones } = await supabase
+        .from('pm_milestones')
+        .insert(milestonesData);
+      
+      if (errorMilestones) {
+        console.error('Error creating milestones:', errorMilestones);
+        // We do not fail the request if milestones fail, just log it
+      }
+    }
+    // ------------------
+
     return NextResponse.json({
       project: newProject,
       message: 'Proyecto creado exitosamente'

@@ -477,7 +477,7 @@ function UserProfileMenu({ isCollapsed }: { isCollapsed: boolean }) {
   const handleLogout = async () => {
     try {
       await logout();
-      window.location.href = '/auth/login';
+      window.location.href = '/auth/sign-in';
     } catch (error) {
       console.error('Error logging out:', error);
     }

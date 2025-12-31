@@ -6,8 +6,11 @@ import ClientLayout from './ClientLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'IRIS - Plataforma Educativa con IA',
+    title: 'IRIS',
     description: 'Plataforma educativa moderna con inteligencia artificial integrada',
+    icons: {
+        icon: '/ico.ico',
+    },
 };
 
 export default function RootLayout({

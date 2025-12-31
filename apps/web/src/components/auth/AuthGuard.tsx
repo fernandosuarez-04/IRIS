@@ -26,7 +26,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     // Solo redirigir después de que se haya inicializado
     if (isInitialized && !isAuthenticated) {
-      router.replace('/auth/login');
+      router.replace('/auth/sign-in');
     }
   }, [isInitialized, isAuthenticated, router]);
 

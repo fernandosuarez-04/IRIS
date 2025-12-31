@@ -60,8 +60,18 @@ const PRIORITY_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: 'planning', label: 'Planificación' },
   { value: 'active', label: 'Activo' },
+  { value: 'active', label: 'Activo' },
   { value: 'on_hold', label: 'En pausa' },
 ];
+
+const handleAddMilestone = (milestones: any[], setMilestones: any, name: string, desc: string, setName: any, setDesc: any, setForm: any) => {
+  if (name.trim()) {
+      setMilestones([...milestones, { name, description: desc }]);
+      setName('');
+      setDesc('');
+      setForm(false);
+  }
+};
 
 // ============================================
 // ICON COMPONENTS
@@ -263,6 +273,12 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, initialTeamId }
   const [labels, setLabels] = useState<string[]>([]);
   const [newLabel, setNewLabel] = useState('');
   
+  // Milestones State
+  const [milestones, setMilestones] = useState<{name: string, description: string}[]>([]);
+  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
+  const [newMilestoneName, setNewMilestoneName] = useState('');
+  const [newMilestoneDesc, setNewMilestoneDesc] = useState('');
+  
   // Initialize teamId if provided
   useEffect(() => {
     if (isOpen && initialTeamId) {
@@ -343,7 +359,10 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, initialTeamId }
           start_date: startDate || null,
           target_date: targetDate || null,
           created_by_user_id: currentUserId,
-          tags: labels
+          target_date: targetDate || null,
+          created_by_user_id: currentUserId,
+          tags: labels,
+          milestones: milestones // Add milestones to payload
         })
       });
 
@@ -372,8 +391,13 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, initialTeamId }
     setLeadId(null);
     setTeamId(null);
     setStartDate('');
+    setStartDate('');
     setTargetDate('');
     setLabels([]);
+    setMilestones([]);
+    setShowMilestoneForm(false);
+    setNewMilestoneName('');
+    setNewMilestoneDesc('');
     setError(null);
     onClose();
   };
@@ -753,20 +777,91 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, initialTeamId }
             </div>
 
             {/* Milestones Section */}
-            <div 
-              className="mt-4 p-4 rounded-xl border flex items-center justify-between"
-              style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : colors.border }}
-            >
-              <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>Milestones</span>
-              <button 
-                className="p-1.5 rounded-lg hover:bg-white/5 transition-colors"
-                style={{ color: colors.textMuted }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </button>
+            <div className={`mt-4 rounded-xl border transition-all ${showMilestoneForm ? 'p-4 bg-gray-50/5 dark:bg-white/5' : 'p-0 border-transparent'}`}
+                 style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : colors.border }}>
+              
+              {/* List of added milestones */}
+              {milestones.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  <div className="text-xs font-bold uppercase tracking-wider opacity-50 mb-2">Milestones ({milestones.length})</div>
+                  {milestones.map((m, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg border bg-white dark:bg-transparent" style={{ borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+                       <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-full border-2 border-dashed opacity-50" />
+                          <div>
+                             <div className="text-sm font-medium">{m.name}</div>
+                             {m.description && <div className="text-xs opacity-60 line-clamp-1">{m.description}</div>}
+                          </div>
+                       </div>
+                       <button onClick={() => setMilestones(milestones.filter((_, i) => i !== idx))} className="opacity-50 hover:opacity-100 p-1 hover:bg-red-500/10 hover:text-red-500 rounded">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Toggle Button (only visible if form is hidden) */}
+              {!showMilestoneForm && (
+                 <button 
+                  onClick={() => setShowMilestoneForm(true)}
+                  className="w-full flex items-center justify-between p-4 rounded-xl border border-dashed hover:bg-white/5 transition-colors group"
+                  style={{ borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }}
+                 >
+                  <span className="text-sm font-medium group-hover:opacity-100 transition-opacity opacity-70">Milestones</span>
+                  <div className="flex items-center gap-2 text-xs font-medium bg-white/5 px-2 py-1 rounded text-opacity-70 group-hover:text-opacity-100 transition-all">
+                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                     Add milestone
+                  </div>
+                 </button>
+              )}
+
+              {/* Creation Form */}
+              {showMilestoneForm && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-center gap-2 mb-4">
+                     <div className="p-1 rounded bg-[#00D4B3]/10 text-[#00D4B3]">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                     </div>
+                     <span className="text-sm font-bold">New Milestone</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <input
+                      autoFocus
+                      type="text"
+                      className="w-full bg-transparent border-none outline-none text-sm font-medium placeholder-gray-500 p-0"
+                      placeholder="Milestone name"
+                      value={newMilestoneName}
+                      onChange={(e) => setNewMilestoneName(e.target.value)}
+                      style={{ color: isDark ? '#FFF' : '#000' }}
+                    />
+                    <textarea
+                      className="w-full bg-transparent border-none outline-none text-sm opacity-80 placeholder-gray-500 p-0 resize-none h-20"
+                      placeholder="Add a description..."
+                      value={newMilestoneDesc}
+                      onChange={(e) => setNewMilestoneDesc(e.target.value)}
+                      style={{ color: isDark ? '#EEE' : '#333' }}
+                    />
+                    
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+                       <button 
+                         onClick={() => { setShowMilestoneForm(false); setNewMilestoneName(''); setNewMilestoneDesc(''); }}
+                         className="px-3 py-1.5 text-xs font-medium rounded hover:bg-white/10 opacity-70 hover:opacity-100"
+                       >
+                         Cancel
+                       </button>
+                       <button 
+                         onClick={() => handleAddMilestone(milestones, setMilestones, newMilestoneName, newMilestoneDesc, setNewMilestoneName, setNewMilestoneDesc, setShowMilestoneForm)}
+                         disabled={!newMilestoneName.trim()}
+                         className="px-3 py-1.5 text-xs font-medium rounded bg-[#6366F1] text-white hover:bg-[#5558DD] disabled:opacity-50 disabled:cursor-not-allowed"
+                       >
+                         Add milestone
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Error Message */}

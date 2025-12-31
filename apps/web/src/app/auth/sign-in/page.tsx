@@ -5,7 +5,7 @@ import { motion, useAnimationControls } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/core/stores/authStore';
 
 export default function SignInPage() {
@@ -27,8 +27,21 @@ export default function SignInPage() {
     
     try {
       await login({ email, password });
-      // Redirigir al dashboard tras login exitoso
-      router.push('/');
+      
+      // Obtener usuario actualizado para decidir redirección
+      const user = useAuthStore.getState().user;
+      
+      // Verificar si hay una URL de retorno
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnUrl = searchParams.get('returnUrl');
+
+      if (returnUrl) {
+        router.push(returnUrl);
+      } else if (user?.role === 'admin' || user?.permissionLevel === 'admin' || user?.permissionLevel === 'super_admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';
       setLocalError(errorMessage);
@@ -48,13 +61,14 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-6 lg:p-12">
+    <div className="w-full min-h-screen flex items-center justify-center p-6 lg:p-12 relative z-10">
+      {/* Patrón de fondo sutil */}
       {/* Patrón de fondo sutil */}
       <div 
-        className="fixed inset-0 opacity-[0.02] pointer-events-none"
+        className="fixed inset-0 opacity-[0.02] dark:opacity-[0.05] pointer-events-none text-[#0A2540] dark:text-gray-600"
         style={{
-          backgroundImage: `linear-gradient(#0A2540 1px, transparent 1px), linear-gradient(90deg, #0A2540 1px, transparent 1px)`,
-          backgroundSize: '40px 40px'
+          backgroundImage: `linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
         }}
       />
 
@@ -99,17 +113,17 @@ export default function SignInPage() {
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          className="w-full max-w-[520px] bg-white rounded-2xl shadow-xl p-12 lg:p-14"
+          className="w-full max-w-[520px] bg-white dark:bg-[#1E2329] rounded-2xl shadow-xl p-12 lg:p-14 border border-transparent dark:border-white/10"
           style={{ 
-            boxShadow: '0 10px 40px -10px rgba(10, 37, 64, 0.12), 0 0 1px rgba(10, 37, 64, 0.1)' 
+            boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.1)' 
           }}
         >
           {/* Header */}
           <div className="text-center mb-10">
-            <h1 className="text-3xl lg:text-4xl font-bold text-[#0A2540] mb-3">
+            <h1 className="text-3xl lg:text-4xl font-bold text-[#0A2540] dark:text-white mb-3">
               Bienvenido de nuevo
             </h1>
-            <p className="text-[#6B7280] text-base">
+            <p className="text-[#6B7280] dark:text-gray-400 text-base">
               Gestiona tus flujos de trabajo y proyectos
             </p>
           </div>
@@ -129,7 +143,7 @@ export default function SignInPage() {
             )}
             {/* Campo Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#0A2540] mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium text-[#0A2540] dark:text-gray-200 mb-1.5">
                 Correo o Usuario
               </label>
               <div className="relative">
@@ -140,7 +154,7 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@correo.com o usuario123"
-                  className="w-full pl-11 pr-4 py-3 rounded-lg border border-[#E5E7EB] bg-white text-[#0A2540] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0A2540]/10 focus:border-[#0A2540] transition-all text-sm"
+                  className="w-full pl-11 pr-4 py-3 rounded-lg border border-[#E5E7EB] dark:border-gray-700 bg-white dark:bg-[#0F1419] text-[#0A2540] dark:text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0A2540]/10 dark:focus:ring-[#00D4B3]/20 focus:border-[#0A2540] dark:focus:border-[#00D4B3] transition-all text-sm"
                   required
                 />
               </div>
@@ -156,13 +170,13 @@ export default function SignInPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-11 pr-11 py-3 rounded-lg border border-[#E5E7EB] bg-white text-[#0A2540] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0A2540]/10 focus:border-[#0A2540] transition-all text-sm"
+                  className="w-full pl-11 pr-11 py-3 rounded-lg border border-[#E5E7EB] dark:border-gray-700 bg-white dark:bg-[#0F1419] text-[#0A2540] dark:text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0A2540]/10 dark:focus:ring-[#00D4B3]/20 focus:border-[#0A2540] dark:focus:border-[#00D4B3] transition-all text-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] dark:hover:text-gray-300 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                 </button>
@@ -175,20 +189,20 @@ export default function SignInPage() {
                 <div 
                   className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-all ${
                     rememberMe 
-                      ? 'border-[#0A2540] bg-[#0A2540]' 
-                      : 'border-[#D1D5DB] group-hover:border-[#9CA3AF]'
+                      ? 'border-[#0A2540] bg-[#0A2540] dark:border-[#00D4B3] dark:bg-[#00D4B3]' 
+                      : 'border-[#D1D5DB] dark:border-gray-600 group-hover:border-[#9CA3AF] dark:group-hover:border-gray-400'
                   }`}
                   onClick={() => setRememberMe(!rememberMe)}
                 >
                   {rememberMe && (
                     <motion.div 
-                      className="w-1.5 h-1.5 rounded-full bg-white"
+                      className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0A0D12]"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                     />
                   )}
                 </div>
-                <span className="text-sm text-[#6B7280]">Recordarme</span>
+                <span className="text-sm text-[#6B7280] dark:text-gray-400">Recordarme</span>
               </label>
               <Link 
                 href="/auth/forgot-password"

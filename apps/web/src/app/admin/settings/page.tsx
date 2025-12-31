@@ -71,48 +71,7 @@ const NotificationsPanel = () => {
     );
 };
 
-const ConnectedAccountsPanel = () => {
-    return (
-        <div className="space-y-8 animate-fadeIn">
-            <SectionTitle title="Cuentas Conectadas" sub="Gestiona tus inicios de sesión sociales." />
-            
-            <div className="space-y-4">
-                {/* Google */}
-                <div className="p-4 rounded-xl border border-gray-200 dark:border-white/5 flex items-center justify-between bg-white dark:bg-transparent">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-gray-100 shadow-sm">
-                            <span className="font-bold text-[#EA4335]">G</span>
-                        </div>
-                        <div>
-                            <h3 className="font-medium">Google</h3>
-                            <p className="text-xs opacity-60">fernando@iris.com</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Icons.CheckCircle />
-                        <span className="text-sm font-medium opacity-60">Conectado</span>
-                    </div>
-                </div>
 
-                {/* GitHub */}
-                <div className="p-4 rounded-xl border border-gray-200 dark:border-white/5 flex items-center justify-between bg-white dark:bg-transparent">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center border border-gray-100 shadow-sm">
-                           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg> 
-                        </div>
-                        <div>
-                            <h3 className="font-medium">GitHub</h3>
-                            <p className="text-xs opacity-60">No conectado</p>
-                        </div>
-                    </div>
-                    <button className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                        Conectar
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 const MCPServersPanel = () => {
     const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
@@ -238,24 +197,7 @@ const SecurityPanel = () => {
         <div className="space-y-8 animate-fadeIn">
             <SectionTitle title="Seguridad" sub="Protege tu cuenta y revisa accesos recientes." />
             
-            <div className="p-6 border border-gray-200 dark:border-white/5 rounded-xl bg-gray-50/50 dark:bg-white/5">
-                <div className="flex items-start gap-4 mb-6">
-                    <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Icons.Key /></div>
-                    <div>
-                        <h3 className="font-bold">Cambiar Contraseña</h3>
-                        <p className="text-sm opacity-60">Se recomienda usar una contraseña segura de al menos 12 caracteres.</p>
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="password" placeholder="Contraseña Actual" className="px-4 py-2 rounded-lg bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 outline-none focus:border-blue-500" />
-                    <input type="password" placeholder="Nueva Contraseña" className="px-4 py-2 rounded-lg bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 outline-none focus:border-blue-500" />
-                </div>
-                <div className="mt-4 flex justify-end">
-                    <button className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black font-medium rounded-lg text-sm hover:opacity-80">
-                        Actualizar Password
-                    </button>
-                </div>
-            </div>
+
 
             <div>
                 <div className="flex items-center gap-2 mb-4">
@@ -288,7 +230,7 @@ export default function SettingsPage() {
 
     const tabs = [
         { id: 'notifications', label: 'Notificaciones', icon: <Icons.Bell /> },
-        { id: 'accounts', label: 'Cuentas Conectadas', icon: <Icons.Link /> },
+
         { id: 'mcp', label: 'IRIS Core Link (MCP)', icon: <Icons.Server /> },
         { id: 'security', label: 'Seguridad', icon: <Icons.Shield /> },
     ];
@@ -327,7 +269,7 @@ export default function SettingsPage() {
                 <div className="flex-1 bg-white dark:bg-[#161b22] rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-8 min-h-[500px]">
                     <AnimatePresence mode="wait">
                         {activeTab === 'notifications' && <NotificationsPanel key="notif" />}
-                        {activeTab === 'accounts' && <ConnectedAccountsPanel key="accounts" />}
+
                         {activeTab === 'mcp' && <MCPServersPanel key="mcp" />}
                         {activeTab === 'security' && <SecurityPanel key="security" />}
                     </AnimatePresence>

@@ -532,3 +532,34 @@ CREATE TABLE public.user_permissions (
   CONSTRAINT user_permissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.account_users(user_id),
   CONSTRAINT user_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.account_users(user_id)
 );
+
+-- ==========================================
+-- PERFORMANCE OPTIMIZATION INDEXES
+-- ==========================================
+
+-- 1. Optimizations for Admin Users Panel (Filtering & Sorting)
+CREATE INDEX IF NOT EXISTS idx_users_status_created ON public.account_users(account_status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_users_permission ON public.account_users(permission_level);
+CREATE INDEX IF NOT EXISTS idx_users_search_composite ON public.account_users(email, username, first_name, last_name_paternal);
+
+-- 2. Optimizations for Teams & Memberships
+CREATE INDEX IF NOT EXISTS idx_teams_owner_status ON public.teams(owner_id, status);
+CREATE INDEX IF NOT EXISTS idx_team_members_composite ON public.team_members(team_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_team_members_user ON public.team_members(user_id);
+
+-- 3. Optimizations for Projects (Dashboard & Lookups)
+CREATE INDEX IF NOT EXISTS idx_projects_team_status ON public.pm_projects(team_id, project_status);
+CREATE INDEX IF NOT EXISTS idx_projects_owner ON public.pm_projects(created_by_user_id);
+
+-- 4. Optimizations for Task Issues (High Volume Queries)
+CREATE INDEX IF NOT EXISTS idx_issues_team_status ON public.task_issues(team_id, status_id);
+CREATE INDEX IF NOT EXISTS idx_issues_assignee_status ON public.task_issues(assignee_id, status_id);
+CREATE INDEX IF NOT EXISTS idx_issues_project_lookup ON public.task_issues(project_id);
+CREATE INDEX IF NOT EXISTS idx_issues_cycle_lookup ON public.task_issues(cycle_id);
+
+-- 5. Optimizations for Activity & Logs
+CREATE INDEX IF NOT EXISTS idx_login_history_user_date ON public.auth_login_history(user_id, attempted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_unread ON public.notifications(recipient_id) WHERE is_read = false;
+
+-- 6. Optimizations for Project Updates
+CREATE INDEX IF NOT EXISTS idx_project_updates_project_date ON public.pm_project_updates(project_id, created_at DESC);

@@ -14,6 +14,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useTheme, themeColors } from '@/contexts/ThemeContext';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { ProjectUpdatesView } from '@/components/admin/projects/views/ProjectUpdatesView';
+import { ProjectIssuesView } from '@/components/admin/projects/views/ProjectIssuesView';
 
 // Status options
 const STATUS_OPTIONS = [
@@ -289,117 +291,156 @@ export default function ProjectDetailPage() {
       <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-12 p-8 lg:p-12">
         
         {/* LEFT COLUMN: PRIMARY CONTENT */}
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-10 min-h-[500px]">
           
-          {/* Title & Header Area */}
-          <div className="space-y-6">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-2xl ${isDark ? 'shadow-blue-900/20' : 'shadow-blue-500/10'}`}
-                 style={{ background: isDark ? 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(147,51,234,0.1))' : 'white', border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>
-               <Layout className="text-blue-500" size={24} />
-            </div>
-            
-            <div className="space-y-2">
-              <h1 className={`text-4xl font-bold tracking-tight ${textMain} leading-tight`}>
-                [{project.project_key}] {project.name}
-              </h1>
-              <p className={`text-xl ${textSub} font-light leading-relaxed max-w-2xl`}>
-                {project.summary}
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Properties Strip */}
-          <div className={`flex flex-wrap items-center gap-6 py-4 border-y ${borderMain}`}>
-             <div className="flex items-center gap-2 text-sm">
-                <span className={textMuted}>Status</span>
-                {(() => {
-                  const statusValue = project.project_status || project.status;
-                  const statusOption = STATUS_OPTIONS.find(s => s.value === statusValue);
-                  return (
-                    <div 
-                      className="flex items-center gap-1.5 px-2 py-1 rounded-full border"
-                      style={{
-                        backgroundColor: `${statusOption?.color || '#6B7280'}15`,
-                        borderColor: `${statusOption?.color || '#6B7280'}30`,
-                        color: statusOption?.color || '#6B7280'
-                      }}
-                    >
-                      <div className={`w-1.5 h-1.5 rounded-full animate-pulse`} style={{ backgroundColor: statusOption?.color || '#6B7280' }} />
-                      <span className="font-medium text-xs">{statusOption?.label || statusValue || 'None'}</span>
+          <AnimatePresence mode="wait">
+            {activeTab === 'overview' && (
+              <motion.div 
+                key="overview"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-10"
+              >
+                  {/* Title & Header Area */}
+                  <div className="space-y-6">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-2xl ${isDark ? 'shadow-blue-900/20' : 'shadow-blue-500/10'}`}
+                        style={{ background: isDark ? 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(147,51,234,0.1))' : 'white', border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>
+                      <Layout className="text-blue-500" size={24} />
                     </div>
-                  );
-                })()}
-             </div>
-
-             <div className="flex items-center gap-2 text-sm">
-                <span className={textMuted}>Priority</span>
-                {(() => {
-                  const priorityValue = project.priority_level || project.priority;
-                  const priorityOption = PRIORITY_OPTIONS.find(p => p.value === priorityValue);
-                  return (
-                    <div className={`flex items-center gap-1.5 ${textMain}`}>
-                      <Flag size={14} style={{ color: priorityOption?.color || '#6B7280' }} />
-                      <span>{priorityOption?.label || priorityValue || 'None'}</span>
+                    
+                    <div className="space-y-2">
+                      <h1 className={`text-4xl font-bold tracking-tight ${textMain} leading-tight`}>
+                        [{project.project_key}] {project.name}
+                      </h1>
+                      <p className={`text-xl ${textSub} font-light leading-relaxed max-w-2xl`}>
+                        {project.summary}
+                      </p>
                     </div>
-                  );
-                })()}
-             </div>
-
-             <div className="flex items-center gap-2 text-sm">
-                <span className={textMuted}>Lead</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-600 flex items-center justify-center text-[10px] font-bold border border-purple-500/30">
-                    {project.lead?.first_name?.[0] || 'U'}
                   </div>
-                  <span className={`${textMain} ${hoverText} cursor-pointer transition-colors`}>
-                    {project.lead?.display_name || 'Unassigned'}
-                  </span>
-                </div>
-             </div>
-             
-             <div className="flex items-center gap-2 text-sm ml-auto">
-                <span className={textMuted}>Timeline</span>
-                <span className={`font-mono text-xs px-2 py-1 rounded ${isDark ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                   {project.start_date ? format(new Date(project.start_date), 'MMM d') : '?'} → {project.target_date ? format(new Date(project.target_date), 'MMM d') : '?'}
-                </span>
-             </div>
-          </div>
 
-          {/* Long Description */}
-          <div className="prose prose-lg max-w-none">
-            <h3 className={`text-lg font-medium ${textMain} mb-4`}>About this project</h3>
-            <p className={`whitespace-pre-line text-lg leading-relaxed ${textSub}`}>
-              {project.description || "No assigned description for this project."}
-            </p>
-          </div>
+                  {/* Quick Properties Strip */}
+                  <div className={`flex flex-wrap items-center gap-6 py-4 border-y ${borderMain}`}>
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className={textMuted}>Status</span>
+                        {(() => {
+                          const statusValue = project.project_status || project.status;
+                          const statusOption = STATUS_OPTIONS.find(s => s.value === statusValue);
+                          return (
+                            <div 
+                              className="flex items-center gap-1.5 px-2 py-1 rounded-full border"
+                              style={{
+                                backgroundColor: `${statusOption?.color || '#6B7280'}15`,
+                                borderColor: `${statusOption?.color || '#6B7280'}30`,
+                                color: statusOption?.color || '#6B7280'
+                              }}
+                            >
+                              <div className={`w-1.5 h-1.5 rounded-full animate-pulse`} style={{ backgroundColor: statusOption?.color || '#6B7280' }} />
+                              <span className="font-medium text-xs">{statusOption?.label || statusValue || 'None'}</span>
+                            </div>
+                          );
+                        })()}
+                    </div>
 
-          {/* Resources / Links */}
-          <div>
-            <h3 className={`text-sm font-medium ${textMuted} uppercase tracking-wider mb-4`}>Resources</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {resources.length > 0 ? resources.map((res: ProjectResource, idx: number) => (
-                <a 
-                  key={idx}
-                  href={res.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-3 p-3 rounded-xl border ${borderMain} ${hoverItem} transition-all text-left group ${bgCard}`}
-                >
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                    <LinkIcon size={16} />
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className={textMuted}>Priority</span>
+                        {(() => {
+                          const priorityValue = project.priority_level || project.priority;
+                          const priorityOption = PRIORITY_OPTIONS.find(p => p.value === priorityValue);
+                          return (
+                            <div className={`flex items-center gap-1.5 ${textMain}`}>
+                              <Flag size={14} style={{ color: priorityOption?.color || '#6B7280' }} />
+                              <span>{priorityOption?.label || priorityValue || 'None'}</span>
+                            </div>
+                          );
+                        })()}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className={textMuted}>Lead</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-600 flex items-center justify-center text-[10px] font-bold border border-purple-500/30">
+                            {project.lead?.first_name?.[0] || 'U'}
+                          </div>
+                          <span className={`${textMain} ${hoverText} cursor-pointer transition-colors`}>
+                            {project.lead?.display_name || 'Unassigned'}
+                          </span>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm ml-auto">
+                        <span className={textMuted}>Timeline</span>
+                        <span className={`font-mono text-xs px-2 py-1 rounded ${isDark ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                          {project.start_date ? format(new Date(project.start_date), 'MMM d') : '?'} → {project.target_date ? format(new Date(project.target_date), 'MMM d') : '?'}
+                        </span>
+                    </div>
                   </div>
+
+                  {/* Long Description */}
+                  <div className="prose prose-lg max-w-none">
+                    <h3 className={`text-lg font-medium ${textMain} mb-4`}>About this project</h3>
+                    <p className={`whitespace-pre-line text-lg leading-relaxed ${textSub}`}>
+                      {project.description || "No assigned description for this project."}
+                    </p>
+                  </div>
+
+                  {/* Resources / Links */}
                   <div>
-                    <div className={`text-sm font-medium ${textMain} group-hover:text-blue-500 transition-colors`}>{res.title}</div>
-                    <div className={`text-xs ${textMuted} capitalize`}>{res.type}</div>
+                    <h3 className={`text-sm font-medium ${textMuted} uppercase tracking-wider mb-4`}>Resources</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {resources.length > 0 ? resources.map((res: ProjectResource, idx: number) => (
+                        <a 
+                          key={idx}
+                          href={res.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-3 p-3 rounded-xl border ${borderMain} ${hoverItem} transition-all text-left group ${bgCard}`}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                            <LinkIcon size={16} />
+                          </div>
+                          <div>
+                            <div className={`text-sm font-medium ${textMain} group-hover:text-blue-500 transition-colors`}>{res.title}</div>
+                            <div className={`text-xs ${textMuted} capitalize`}>{res.type}</div>
+                          </div>
+                        </a>
+                      )) : (
+                        <div className={`col-span-2 p-8 rounded-xl border border-dashed ${borderSub} text-center`}>
+                          <p className={`${textMuted} text-sm`}>No resources added yet.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </a>
-              )) : (
-                <div className={`col-span-2 p-8 rounded-xl border border-dashed ${borderSub} text-center`}>
-                  <p className={`${textMuted} text-sm`}>No resources added yet.</p>
-                </div>
-              )}
-            </div>
-          </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'updates' && (
+              <motion.div 
+                key="updates"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="w-full"
+              >
+                  <ProjectUpdatesView projectId={project.project_id} />
+              </motion.div>
+            )}
+
+            {activeTab === 'issues' && (
+               <motion.div 
+                key="issues"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-full"
+              >
+                  <ProjectIssuesView projectId={project.project_id} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* RIGHT COLUMN: SIDEBAR */}
