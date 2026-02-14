@@ -22,10 +22,13 @@ export default function FocusEnforcer() {
 
         let timeoutId: NodeJS.Timeout;
         let isMounted = true;
+        const controller = new AbortController();
 
         const checkFocus = async () => {
             try {
-                const res = await fetch(`/api/focus?userId=${user.id}`);
+                const res = await fetch(`/api/focus?userId=${user.id}`, {
+                    signal: controller.signal,
+                });
                 
                 if (res.ok) {
                     const data = await res.json();
@@ -49,20 +52,23 @@ export default function FocusEnforcer() {
                     }
                 } else {
                     // API Error (e.g. 500 table missing): Backoff 60s
-                    console.warn(`Focus API Error ${res.status}. Retrying in 60s.`);
                     if (isMounted) timeoutId = setTimeout(checkFocus, 60000);
                 }
-            } catch (e) {
-                console.error("Focus check failed", e);
-                // Network Error: Backoff 60s
-                if (isMounted) timeoutId = setTimeout(checkFocus, 60000);
+            } catch (e: any) {
+                // Ignore abort errors (component unmounted)
+                if (e?.name === 'AbortError') return;
+                // Network Error: Backoff silently (120s)
+                console.warn('[FocusEnforcer] Polling paused – retrying in 120s');
+                if (isMounted) timeoutId = setTimeout(checkFocus, 120000);
             }
         };
 
-        checkFocus(); // Check immediately on mount
+        // Delay initial check by 3s to let the app fully load
+        timeoutId = setTimeout(checkFocus, 3000);
 
         return () => {
             isMounted = false;
+            controller.abort();
             clearTimeout(timeoutId);
         };
     }, [user?.id]);

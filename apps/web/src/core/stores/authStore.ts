@@ -23,6 +23,15 @@ interface User {
     locale?: string;
     createdAt: Date;
     updatedAt: Date;
+    sofiaUserId?: string;
+}
+
+export interface WorkspaceInfo {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string;
+    role: string;
 }
 
 interface LoginCredentials {
@@ -46,6 +55,8 @@ interface AuthState {
     isLoading: boolean;
     isInitialized: boolean;
     error: string | null;
+    authSource: 'sofia' | 'local' | null;
+    workspaces: WorkspaceInfo[];
 
     // Actions
     login: (credentials: LoginCredentials) => Promise<void>;
@@ -55,6 +66,7 @@ interface AuthState {
     fetchCurrentUser: () => Promise<void>;
     clearError: () => void;
     setUser: (user: User | null) => void;
+    setWorkspaces: (workspaces: WorkspaceInfo[]) => void;
     initialize: () => Promise<void>;
 }
 
@@ -78,16 +90,16 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             isInitialized: false,
             error: null,
+            authSource: null,
+            workspaces: [],
 
             // Initialize - verificar sesión existente al cargar la app
             initialize: async () => {
                 const token = getAccessToken();
-                
-                // Si no hay token, limpiar todo el estado persistido
+
                 if (!token) {
-                    // Limpiar el storage de Zustand también
                     localStorage.removeItem('auth-storage');
-                    set({ isInitialized: true, isAuthenticated: false, user: null });
+                    set({ isInitialized: true, isAuthenticated: false, user: null, workspaces: [] });
                     return;
                 }
 
@@ -95,14 +107,12 @@ export const useAuthStore = create<AuthState>()(
                     await get().fetchCurrentUser();
                     set({ isInitialized: true });
                 } catch {
-                    // Token inválido, intentar refresh
                     const refreshed = await get().refreshToken();
                     if (!refreshed) {
-                        // Limpiar todos los tokens y storage
                         localStorage.removeItem('accessToken');
                         localStorage.removeItem('refreshToken');
                         localStorage.removeItem('auth-storage');
-                        set({ isAuthenticated: false, user: null, isInitialized: true });
+                        set({ isAuthenticated: false, user: null, isInitialized: true, workspaces: [] });
                         return;
                     }
                     set({ isInitialized: true });
@@ -133,6 +143,8 @@ export const useAuthStore = create<AuthState>()(
                         isAuthenticated: true,
                         isLoading: false,
                         error: null,
+                        authSource: data.authSource || 'local',
+                        workspaces: data.workspaces || [],
                     });
                 } catch (error: unknown) {
                     const errorMessage =
@@ -183,11 +195,10 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            // Logout action - ahora llama a la API para revocar la sesión
+            // Logout action
             logout: async () => {
                 const token = getAccessToken();
-                
-                // Intentar revocar sesión en el servidor
+
                 if (token) {
                     try {
                         await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -199,7 +210,6 @@ export const useAuthStore = create<AuthState>()(
                         });
                     } catch (error) {
                         console.error('Error al cerrar sesión en servidor:', error);
-                        // Continuar con logout local aunque falle el servidor
                     }
                 }
 
@@ -210,13 +220,15 @@ export const useAuthStore = create<AuthState>()(
                     isAuthenticated: false,
                     isLoading: false,
                     error: null,
+                    authSource: null,
+                    workspaces: [],
                 });
             },
 
-            // Refresh token - renovar tokens automáticamente
+            // Refresh token
             refreshToken: async (): Promise<boolean> => {
                 const refreshTokenValue = getRefreshToken();
-                
+
                 if (!refreshTokenValue) {
                     return false;
                 }
@@ -233,13 +245,12 @@ export const useAuthStore = create<AuthState>()(
                     }
 
                     const data = await res.json();
-                    
+
                     localStorage.setItem('accessToken', data.accessToken);
                     localStorage.setItem('refreshToken', data.refreshToken);
 
-                    // Obtener datos actualizados del usuario
                     await get().fetchCurrentUser();
-                    
+
                     return true;
                 } catch (error) {
                     console.error('Error al renovar token:', error);
@@ -247,10 +258,10 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            // Fetch current user - obtener datos del usuario autenticado
+            // Fetch current user
             fetchCurrentUser: async () => {
                 const token = getAccessToken();
-                
+
                 if (!token) {
                     set({ isAuthenticated: false, user: null });
                     return;
@@ -266,19 +277,18 @@ export const useAuthStore = create<AuthState>()(
                     });
 
                     if (!res.ok) {
-                        // Si el token expiró, intentar refresh
                         if (res.status === 401) {
                             const refreshed = await get().refreshToken();
                             if (!refreshed) {
                                 throw new Error('Sesión expirada');
                             }
-                            return; // fetchCurrentUser ya fue llamado en refreshToken
+                            return;
                         }
                         throw new Error('Error al obtener usuario');
                     }
 
                     const userData = await res.json();
-                    
+
                     set({
                         user: {
                             ...userData,
@@ -294,21 +304,24 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            // Clear error
             clearError: () => set({ error: null }),
 
-            // Set user manually
             setUser: (user: User | null) =>
                 set({
                     user,
                     isAuthenticated: !!user,
                 }),
+
+            setWorkspaces: (workspaces: WorkspaceInfo[]) =>
+                set({ workspaces }),
         }),
         {
             name: 'auth-storage',
             partialize: (state) => ({
                 user: state.user,
                 isAuthenticated: state.isAuthenticated,
+                authSource: state.authSource,
+                workspaces: state.workspaces,
             }),
         }
     )

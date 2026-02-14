@@ -32,7 +32,7 @@ INSERT INTO public.account_users (
   'fernando_suarez',
   'fernando.suarez@ecosdeliderazgo.com',
   -- Contraseña: 220626EaFy (hasheada con bcrypt, cost 12)
-  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4OJYV.X3HKV1yU3e',
+  '$2b$12$fQ74Xb3uSackHFK51hZcG.RChaToOY.C6iAezfs3LpJf7Yj1G0nr2',
   'super_admin',
   'CEO',
   'Dirección General',

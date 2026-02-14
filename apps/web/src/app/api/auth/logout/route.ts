@@ -43,7 +43,16 @@ export async function POST(request: NextRequest) {
       })
       .eq('token_hash', tokenHash);
 
-    return NextResponse.json({ success: true, message: 'Sesión cerrada correctamente' });
+    const res = NextResponse.json({ success: true, message: 'Sesión cerrada correctamente' });
+    // Limpiar cookie httpOnly
+    res.cookies.set('accessToken', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+    });
+    return res;
 
   } catch (error) {
     console.error('Error en logout:', error);

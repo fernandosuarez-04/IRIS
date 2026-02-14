@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm ls:*)",
+      "Bash(node -e:*)",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "Bash(npx next dev:*)"
+    ]
+  }
+}

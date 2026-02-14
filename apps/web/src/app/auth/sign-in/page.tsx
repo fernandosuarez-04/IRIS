@@ -24,23 +24,28 @@ export default function SignInPage() {
     e.preventDefault();
     setLocalError(null);
     clearError();
-    
+
     try {
       await login({ email, password });
-      
-      // Obtener usuario actualizado para decidir redirección
-      const user = useAuthStore.getState().user;
-      
+
+      const state = useAuthStore.getState();
+      const user = state.user;
+      const workspaces = state.workspaces;
+
       // Verificar si hay una URL de retorno
       const searchParams = new URLSearchParams(window.location.search);
       const returnUrl = searchParams.get('returnUrl');
 
-      if (returnUrl) {
+      if (returnUrl && !returnUrl.startsWith('/auth')) {
         router.push(returnUrl);
-      } else if (user?.role === 'admin' || user?.permissionLevel === 'admin' || user?.permissionLevel === 'super_admin') {
+      } else if (workspaces.length === 1) {
+        router.push(`/${workspaces[0].slug}/dashboard`);
+      } else if (workspaces.length > 1) {
+        router.push('/select-organization');
+      } else if (user?.role === 'admin' || user?.permissionLevel === 'super_admin') {
         router.push('/admin');
       } else {
-        router.push('/dashboard');
+        router.push('/select-organization');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';

@@ -16,8 +16,6 @@ const PUBLIC_PATHS = [
   '/auth/reset-password',
   '/login',
   '/register',
-  '/admin',               // TEMPORAL: Para desarrollo del panel admin
-  '/api/admin',           // TEMPORAL: Para desarrollo del panel admin
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/refresh',
@@ -27,6 +25,8 @@ const PUBLIC_PATHS = [
   '/api/focus',           // Focus Mode
   '/api/search',          // Global Search
   '/api/notifications',   // Notifications
+  '/api/ext',             // Extension API (SOFLIA - auth propia en cada route)
+  '/api/workspaces',      // Workspaces API (auth propia en cada route)
   '/lia-test',            // Página de prueba de LIA
   '/_next',
   '/favicon.ico',
@@ -48,6 +48,9 @@ const ADMIN_PATHS = [
   '/admin',
   '/api/admin',
 ];
+
+// Rutas protegidas (requieren auth, no admin) - incluye rutas de org con slug
+// Las rutas /{orgSlug}/* se protegen automáticamente porque no están en PUBLIC_PATHS
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -142,7 +145,7 @@ export function middleware(request: NextRequest) {
     // Si el usuario autenticado intenta acceder a rutas de solo invitados
     const isGuestOnlyPath = GUEST_ONLY_PATHS.some(path => pathname === path);
     if (isGuestOnlyPath) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/select-organization', request.url));
     }
 
     // Token válido, continuar
